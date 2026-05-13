@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chess - Tutorial</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="game-container" class="modes-container">
+    <h1 class="modes-title">CHESS</h1>
+    <p class="modes-subtitle">Learner&apos;s Tutorial</p>
+
+    <div class="panel" style="max-width: 900px; margin: 0 auto;">
+      <div class="panel-header">How to play (practical guide)</div>
+      <div class="panel-subtext">Learn the fundamentals, then start playing.</div>
+
+      <div style="text-align: left; color: rgba(255,255,255,0.95); line-height: 1.55; font-size: 14px;">
+        <h4 style="margin: 10px 0 6px;">1) Anatomy of the board & pieces</h4>
+        <ul style="padding-left: 18px; margin-bottom: 12px;">
+          <li><b>Files</b> are columns (a through h).</li>
+          <li><b>Ranks</b> are rows (1 through 8).</li>
+          <li>Every square has a coordinate like <b>e4</b> (file + rank).</li>
+          <li>Pieces move differently; your goal is to control key squares and attack the king.</li>
+        </ul>
+
+        <h4 style="margin: 10px 0 6px;">2) Special roles & maneuvers</h4>
+        <ul style="padding-left: 18px; margin-bottom: 12px;">
+          <li><b>Check</b>: your move attacks the opponent&apos;s king.</li>
+          <li><b>Checkmate</b>: check with no legal escape (you win).</li>
+          <li><b>Stalemate</b>: no legal moves but not in check (draw in standard rules).</li>
+          <li><b>Promotion</b>: when a pawn reaches the last rank, it becomes a stronger piece.</li>
+          <li><b>Captures</b>: you may capture opposing pieces if your move is legal.</li>
+        </ul>
+
+        <h4 style="margin: 10px 0 6px;">3) Objective</h4>
+        <ul style="padding-left: 18px; margin-bottom: 12px;">
+          <li>Win by delivering <b>checkmate</b>.</li>
+          <li>Avoid moves that allow your king to be captured (this app blocks king capture).</li>
+        </ul>
+
+        <h4 style="margin: 10px 0 6px;">4) Phase-based strategy</h4>
+        <ul style="padding-left: 18px; margin-bottom: 12px;">
+          <li><b>Opening</b>: develop pieces, control the center, and keep your king safe.</li>
+          <li><b>Middlegame</b>: build threats, look for tactics, and improve piece activity.</li>
+          <li><b>Endgame</b>: trade when favorable, promote pawns, and convert material advantages.</li>
+        </ul>
+
+        <h4 style="margin: 10px 0 6px;">5) Common patterns & puzzles</h4>
+        <ul style="padding-left: 18px; margin-bottom: 12px;">
+          <li><b>Forks</b>: one piece attacks two valuable targets at once.</li>
+          <li><b>Pins</b>: a piece is forced to stay because moving would lose something important.</li>
+          <li><b>Skewers</b>: like pins, but the valuable piece is behind the attacked piece.</li>
+          <li><b>Mate threats</b>: look for checks first when you suspect an attack.</li>
+        </ul>
+
+        <div class="panel-message" style="margin-top: 10px;">
+          When you&apos;re ready, go back and choose <b>Let’s Play</b> to practice.
+        </div>
+      </div>
+
+      <div class="panel-actions" style="margin-top: 16px;">
+        <button id="back-to-modes-btn" class="ghost-btn" type="button">Back</button>
+        <button id="start-lets-play-btn" class="primary-btn" type="button">Let’s Play</button>
+      </div>
+
+      <div id="tutorial-message" class="panel-message" role="status" aria-live="polite"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const backBtn = document.getElementById('back-to-modes-btn');
+    const startBtn = document.getElementById('start-lets-play-btn');
+    const msgEl = document.getElementById('tutorial-message');
+
+    backBtn.addEventListener('click', () => {
+      window.location.href = 'modes.html';
+    });
+
+    startBtn.addEventListener('click', () => {
+      const params = new URLSearchParams({ level: 'lets-play', match: 'tutorial' });
+      window.location.href = `main-game.html?${params.toString()}`;
+    });
+
+    msgEl.textContent = '';
+  </script>
+</body>
+</html>
+

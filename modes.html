@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chess - Modes</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="game-container" class="modes-container">
+    <h1 class="modes-title">CHESS</h1>
+    <p class="modes-subtitle">Choose a mode</p>
+
+    <div class="modes-grid">
+      <button id="learner-btn" class="mode-card" type="button">
+        <div class="mode-card-title">Learner&apos;s Mode</div>
+        <div class="mode-card-desc">Tutorial</div>
+      </button>
+
+      <button id="game-btn" class="mode-card" type="button">
+        <div class="mode-card-title">Game Mode</div>
+        <div class="mode-card-desc">Beginner → Master</div>
+      </button>
+    </div>
+
+    <div id="learner-panel" class="panel" hidden>
+      <div class="panel-header">Learner&apos;s Mode</div>
+      <div class="panel-subtext">Pick an option:</div>
+      <div class="panel-actions">
+        <button id="tutorial-btn" class="primary-btn" type="button">Tutorial</button>
+        <button id="lets-play-btn" class="ghost-btn" type="button">Let’s Play</button>
+      </div>
+
+      <div id="learner-tutorial" class="panel-message" aria-live="polite" hidden>
+        <h4 style="margin-bottom: 8px;">Advanced Tutorial (Let’s Play)</h4>
+        <div style="text-align: left; font-size: 14px; line-height: 1.45;">
+          <ul style="padding-left: 18px; margin-top: 6px;">
+            <li><b>Anatomy of the board & pieces</b> — files, ranks, and how to read square coordinates.</li>
+            <li><b>Special roles & maneuvers</b> — check, checkmate, castling (if/when your rules allow), promotion.</li>
+            <li><b>Objective</b> — win by giving checkmate; avoid stalemate.</li>
+            <li><b>Phase-based strategy</b> — opening principles, central control, and early king safety.</li>
+            <li><b>Common patterns & puzzles</b> — forks, pins, skewers, and mate threats to look for.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div id="learner-message" class="panel-message" role="status" aria-live="polite"></div>
+    </div>
+
+
+    <div id="game-panel" class="panel" hidden>
+      <div class="panel-header">Game Mode</div>
+
+      <div class="panel-section">
+        <div class="panel-subtext">Select level:</div>
+        <div class="level-grid">
+          <button class="level-btn" data-level="beginner" type="button">Beginner</button>
+          <button class="level-btn" data-level="intermediate" type="button">Intermediate</button>
+          <button class="level-btn" data-level="master" type="button">Master</button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-subtext">Select match type:</div>
+        <div class="match-grid">
+          <button class="match-btn" data-match="pvp" type="button">Player vs Player</button>
+          <button class="match-btn" data-match="pvai" type="button">Player vs AI</button>
+        </div>
+      </div>
+
+      <div class="panel-actions">
+        <button id="start-game-btn" class="primary-btn" type="button" disabled>Start</button>
+      </div>
+
+      <div id="game-message" class="panel-message" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="panel-footer">
+      <button id="back-btn" class="ghost-btn" type="button">Back to Home</button>
+    </div>
+  </div>
+
+  <script src="modes.js"></script>
+</body>
+</html>
+
+
