@@ -234,7 +234,8 @@ function aiChooseMove(game, options = {}) {
 
   // Add a deliberate “thinking/move delay” so the player can see the AI choice.
   // Make it slower on easier difficulties; master can still be a bit slower.
-  const delayMs = level === 'beginner' ? 650 : level === 'intermediate' ? 750 : 900;
+  // Uniform AI delay across all levels (matches requirement: ~3s)
+  const delayMs = 3000;
 
   window.__aiState.busy = true;
   try {

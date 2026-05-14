@@ -15,9 +15,11 @@ body {
     repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 2px, rgba(255,255,255,0.04) 2px 4px),
     /* base */
     linear-gradient(135deg, #8a5a33 0%, #7a4a28 35%, #6a3f22 100%);
+
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+
   min-height: 100vh;
   padding: 20px;
 }
@@ -274,14 +276,9 @@ body {
 
 /* Put footer on the side (right of the board) for desktop */
 @media (min-width: 901px) {
-  /* pages that have only a #game-container stack can’t be reflowed; for main-game/tutor we
-     want the footer to look like a side label, so we attach to #game-container layout only. */
   #game-container {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 26px;
+    /* Keep desktop layout from forcing side-style alignment */
+    display: block;
   }
 
   #move-history {
@@ -289,12 +286,12 @@ body {
   }
 
   .app-footer {
-    order: 3;
-    /* “side” placement */
-    margin-top: 0;
-    width: 220px;
-    text-align: left;
-    align-self: flex-start;
+    /* Stack footer at the bottom (not a side label) */
+    order: initial;
+    margin-top: 18px;
+    width: 100%;
+    text-align: center;
+    align-self: auto;
   }
 }
 
