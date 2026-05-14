@@ -83,11 +83,25 @@ function updateStartEnabled() {
 startGameBtn.addEventListener('click', () => {
   if (!selectedLevel || !selectedMatch) return;
 
-  const params = new URLSearchParams({ level: selectedLevel, match: selectedMatch });
+  // For Player vs AI we pass through the selected level as difficulty.
+  // (main-game.js + ai.js decide how strong each level is.)
+  const params = new URLSearchParams({ level: mapAiDifficulty(selectedLevel), match: selectedMatch });
   window.location.href = `main-game.html?${params.toString()}`;
 });
+
 
 backBtn.addEventListener('click', () => {
   window.location.href = 'index.html';
 });
+
+// Map AI difficulty labels from the learner/game level selector.
+// Levels in this app: beginner | intermediate | master
+function mapAiDifficulty(level) {
+  if (!level) return 'beginner';
+  if (level === 'beginner') return 'beginner';
+  if (level === 'intermediate') return 'intermediate';
+  if (level === 'master') return 'master';
+  return level;
+}
+
 

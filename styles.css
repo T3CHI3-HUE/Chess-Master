@@ -263,6 +263,55 @@ body {
   justify-content: center;
 }
 
+.app-footer {
+  /* Default: place below main content */
+  width: 100%;
+  text-align: center;
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  margin-top: 18px;
+}
+
+/* Put footer on the side (right of the board) for desktop */
+@media (min-width: 901px) {
+  /* pages that have only a #game-container stack can’t be reflowed; for main-game/tutor we
+     want the footer to look like a side label, so we attach to #game-container layout only. */
+  #game-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 26px;
+  }
+
+  #move-history {
+    order: 2;
+  }
+
+  .app-footer {
+    order: 3;
+    /* “side” placement */
+    margin-top: 0;
+    width: 220px;
+    text-align: left;
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Everything below on smaller screens */
+  #game-container {
+    display: block;
+  }
+  .app-footer {
+    width: 100%;
+    text-align: center;
+    margin-top: 18px;
+    align-self: auto;
+  }
+}
+
+
 #game-container {
   position: relative;
   text-align: center;
@@ -325,7 +374,7 @@ body {
 
 .square.capture {
   background: rgba(255,0,0,0.4) !important;
-  box-shadow: inset 0 0 20px rgba(255,0,0,0.6);
+  box-shadow: inset 0 0 20px rgba(0,255,0,0.6);
 }
 
 .piece {
