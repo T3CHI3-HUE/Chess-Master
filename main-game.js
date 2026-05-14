@@ -189,24 +189,42 @@ function applyLearnerModeHints() {
   // In this codebase, “let’s play” is represented as level=lets-play and match=tutorial.
   if (level !== 'lets-play' || mode !== 'tutorial') return;
 
-  // Step-by-step “Let’s Play” puzzle objectives.
-  // Coordinates are based on the app’s board indexing:
-  // row 0 = black back rank, row 7 = white back rank.
-  // file mapping: col 0=a ... col 7=h.
-  // This sequence is intentionally simple and works with the app’s current (basic) move rules.
+  // Full scripted “Let’s Play” guide.
+  // IMPORTANT: this app uses simplified rules (no castling, no en-passant, no king capture).
+  // The line below is chosen to be legal under those rules.
   const steps = [
-    // Step 1: White plays e2 -> e4
-    { turn: 'w', from: { r: 6, c: 4 }, to: { r: 4, c: 4 }, label: 'Step 1: Play e2 to e4.' },
-    // Step 2: Black plays e7 -> e5
-    { turn: 'b', from: { r: 1, c: 4 }, to: { r: 3, c: 4 }, label: 'Step 2: Black responds with e7 to e5.' },
-    // Step 3: White plays d2 -> d4
-    { turn: 'w', from: { r: 6, c: 3 }, to: { r: 4, c: 3 }, label: 'Step 3: Play d2 to d4.' },
-    // Step 4: Black plays e5 -> d4 capturing that pawn (e5xd4)
-    { turn: 'b', from: { r: 3, c: 4 }, to: { r: 4, c: 3 }, label: 'Step 4: Capture on d4 (e5 to d4).' },
-    // Step 5: White plays c1 -> g5 (bishop to g5)
-    { turn: 'w', from: { r: 7, c: 2 }, to: { r: 3, c: 6 }, label: 'Step 5: Develop your bishop to g5.' },
-    // Step 6: Black plays d4 -> e3 capturing again (d4xe3)
-    { turn: 'b', from: { r: 4, c: 3 }, to: { r: 5, c: 4 }, label: 'Step 6: Capture on e3 (d4 to e3).' },
+    // 1. e2 -> e4 (player)
+    { turn: 'w', from: { r: 6, c: 4 }, to: { r: 4, c: 4 }, label: 'Play e2 to e4. This opens the center.' },
+    // 1... e7 -> e5 (AI)
+    { turn: 'b', from: { r: 1, c: 4 }, to: { r: 3, c: 4 }, label: 'Black responds: e7 to e5. Challenge your center.' },
+
+    // 2. d2 -> d4 (player)
+    { turn: 'w', from: { r: 6, c: 3 }, to: { r: 4, c: 3 }, label: 'Play d2 to d4. Attack the center.' },
+    // 2... e5 -> d4 (AI capture)
+    { turn: 'b', from: { r: 3, c: 4 }, to: { r: 4, c: 3 }, label: 'Black captures on d4 (e5 to d4).' },
+
+    // 3. bishop c1 -> g5 (player)
+    { turn: 'w', from: { r: 7, c: 2 }, to: { r: 3, c: 6 }, label: 'Develop: bishop to g5. Put pressure on key squares.' },
+    // 3... d4 -> e3 (AI capture)
+    { turn: 'b', from: { r: 4, c: 3 }, to: { r: 5, c: 4 }, label: 'Black captures again: d4 to e3.' },
+
+    // 4. g2 pawn -> g4 (player)
+    { turn: 'w', from: { r: 6, c: 6 }, to: { r: 4, c: 6 }, label: 'Push g-pawn to g4. Gain space and support attacks.' },
+    // 4... e3 -> e2 (AI forward; pawn at e3 goes to e2)
+    { turn: 'b', from: { r: 5, c: 4 }, to: { r: 6, c: 4 }, label: 'Black advances: e3 to e2.' },
+
+    // 5. king e1 -> f1 (player, simplified king move)
+    { turn: 'w', from: { r: 7, c: 4 }, to: { r: 7, c: 5 }, label: 'Step king to f1 for safety and to connect your pieces.' },
+    // 5... e2 -> e1 (AI pawn to last rank triggers promotion)
+    { turn: 'b', from: { r: 6, c: 4 }, to: { r: 7, c: 4 }, label: 'Black pawn goes to e1 and promotes.' },
+
+    // 6. queen d1 -> e2 (player, simplified queen movement)
+    { turn: 'w', from: { r: 7, c: 3 }, to: { r: 6, c: 4 }, label: 'Bring the queen to e2. Control the center and respond to the threat.' },
+    // 6... promoted piece: use a safe AI move a7 -> a6
+    { turn: 'b', from: { r: 1, c: 0 }, to: { r: 2, c: 0 }, label: 'Black: a7 to a6. Improve pawn structure.' },
+
+    // 7 (end). queen e2 -> e3
+    { turn: 'w', from: { r: 6, c: 4 }, to: { r: 5, c: 4 }, label: 'Finish: move queen to e3. Keep pieces active and press forward.' }
   ];
 
   const statusEl = document.getElementById('status');
@@ -215,12 +233,29 @@ function applyLearnerModeHints() {
   // Show square coordinates during “Let’s Play” so instructions like e4/e5 are easy to follow.
   document.body.dataset.showCoords = '1';
 
+  // Text-to-speech tutor (English).
+  const synth = window.speechSynthesis;
+  let isSpeaking = false;
+
+  function speak(text) {
+    if (!synth || !text) return;
+    try {
+      // Stop any current speech, then speak new prompt.
+      synth.cancel();
+      isSpeaking = true;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = 0.95;
+      u.pitch = 1.0;
+      u.onend = () => { isSpeaking = false; };
+      u.onerror = () => { isSpeaking = false; };
+      synth.speak(u);
+    } catch (e) {
+      // Ignore TTS failures.
+    }
+  }
 
   let stepIndex = 0;
-
-  function moveToKey(m) {
-    return `${m.from.r},${m.from.c}->${m.to.r},${m.to.c}`;
-  }
 
   function getCurrentStep() {
     return steps[stepIndex] || null;
@@ -229,14 +264,13 @@ function applyLearnerModeHints() {
   function setPrompt(text) {
     if (statusEl) statusEl.textContent = text;
     if (learnerMessageEl) learnerMessageEl.textContent = '';
+    speak(text);
   }
 
   function advanceIfPlayerMadeCorrectMove(game) {
     const step = getCurrentStep();
     if (!step) return;
 
-    // After a correct player move, currentPlayer has already switched.
-    // So we check based on the move that just happened.
     const last = game.moveHistory[game.moveHistory.length - 1];
     if (!last) return;
 
@@ -248,60 +282,80 @@ function applyLearnerModeHints() {
 
     if (correct) {
       stepIndex++;
-      setPrompt(getCurrentStep()?.label || 'Tutorial complete!');
+      const next = getCurrentStep();
+      setPrompt((next && next.label) ? next.label : 'Tutorial complete!');
     } else {
-      // Nudge without blocking.
       if (learnerMessageEl) learnerMessageEl.textContent = `Try again: ${step.label}`;
     }
   }
 
-  // Override the UI’s move behavior by polling on each successful move.
-  // Since we don’t have hooks, we intercept by patching movePiece once.
-  // (This only affects the “Let’s Play” mode.)
+  // Override movePiece so we can validate + auto-play scripted AI moves.
   const originalMovePiece = ChessGame.prototype.movePiece;
   ChessGame.prototype.movePiece = function (fromRow, fromCol, toRow, toCol) {
     const ok = originalMovePiece.call(this, fromRow, fromCol, toRow, toCol);
     if (!ok) return false;
 
-    // If it was the player’s turn for this step, validate.
-    const step = getCurrentStep();
-    if (step && step.turn === this.currentPlayer) {
-      // NOTE: currentPlayer has already been switched in movePiece.
-      // The step.turn corresponds to the side that made the move before switch,
-      // so we compare against the last move instead of this.currentPlayer.
-      // We treat “turn correctness” as: step belongs to the side that moved.
-      // The simplest approach: validate last move regardless of whose turn now.
-      // If the move is correct, advance.
-      advanceIfPlayerMadeCorrectMove(this);
-    } else {
-      advanceIfPlayerMadeCorrectMove(this);
-    }
+    advanceIfPlayerMadeCorrectMove(this);
 
-    // If AI should respond (i.e., next step is black), auto-play.
-    // We wait until after the player move has updated the board.
-    const next = getCurrentStep();
-    if (next && next.turn === 'b' && !this.gameOver) {
-      // Compute and perform the required AI move.
+    // If next scripted step is black, auto-play it immediately.
+    let next = getCurrentStep();
+    while (next && next.turn === 'b' && !this.gameOver) {
       const aiMove = next;
-      // If the required piece isn’t present / move illegal due to earlier divergence, stop.
       const did = originalMovePiece.call(this, aiMove.from.r, aiMove.from.c, aiMove.to.r, aiMove.to.c);
-      if (did) {
-        stepIndex++;
-        setPrompt(getCurrentStep()?.label || 'Tutorial complete!');
-      }
+      if (!did) break;
+      stepIndex++;
+      next = getCurrentStep();
+      setPrompt((next && next.label) ? next.label : 'Tutorial complete!');
     }
 
     return ok;
   };
 
   // Initial prompt.
-  setPrompt(getCurrentStep()?.label || 'Let’s Play');
+  setPrompt(getCurrentStep() && getCurrentStep().label ? getCurrentStep().label : 'Let’s Play');
 }
 
 
 window.addEventListener('load', () => {
-  new ChessUI();
+  const ui = new ChessUI();
+  window.__chessUIInstance = ui;
   applyLearnerModeHints();
+
+  // Player vs AI support
+
+  const params = new URLSearchParams(window.location.search);
+  const match = params.get('match');
+  const level = params.get('level');
+
+if (match === 'pvai' && level) {
+    window.__aiState = window.__aiState || { busy: false, lastMoveKey: null };
+
+    // Determine which side AI plays.
+    // By default we assume player is White and AI is Black.
+    // If level/match later includes settings, this can be extended.
+
+
+    // Poll for AI turns; this app has no event hooks after moves.
+    setInterval(() => {
+      const ui = window.__chessUIInstance;
+      if (!ui) return;
+      const game = ui.game;
+      if (!game || game.gameOver) return;
+
+      // AI plays black by default.
+      if (game.currentPlayer === 'b') {
+        if (window.__aiState && window.__aiState.busy) return;
+        if (typeof aiPlayIfNeeded === 'function') {
+          aiPlayIfNeeded(game, level);
+          // UI will update on next user action; we also trigger a render here.
+          ui.updateStatus();
+          ui.updateHistory && ui.updateHistory();
+          ui.render();
+        }
+      }
+    }, 250);
+  }
 });
+
 
 
