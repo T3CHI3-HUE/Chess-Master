@@ -221,7 +221,7 @@ function aiChooseMove(game, options = {}) {
   return move || moves[0];
 }
 
-  function aiPlayIfNeeded(game, level) {
+function aiPlayIfNeeded(game, level) {
   if (!window.__aiState) window.__aiState = { busy: false, lastMoveKey: null };
   if (window.__aiState.busy) return false;
 
@@ -232,32 +232,31 @@ function aiChooseMove(game, options = {}) {
   const moveKey = `${move.fromRow},${move.fromCol}->${move.toRow},${move.toCol}`;
   if (window.__aiState.lastMoveKey === moveKey) return false;
 
-  // Add a deliberate “thinking/move delay” so the player can see the AI choice.
-  // Make it slower on easier difficulties; master can still be a bit slower.
-  // Uniform AI delay across all levels (matches requirement: ~3s)
-  const delayMs = 3000;
+  const delayMs = 0;
+
 
   window.__aiState.busy = true;
-  try {
-    setTimeout(() => {
-      // AI turn might have changed due to race; double-check.
-      if (!window.__aiState) return;
-      if (game.gameOver) return;
-      if (game.currentPlayer !== game.currentPlayer) {
-        // no-op (kept for safety)
-      }
-
-      const ok = game.movePiece(move.fromRow, move.fromCol, move.toRow, move.toCol);
-      if (ok) window.__aiState.lastMoveKey = moveKey;
-
-      // Let UI re-render before next AI step
+  setTimeout(() => {
+    if (!window.__aiState) return;
+    if (game.gameOver) {
       window.__aiState.busy = false;
-    }, delayMs);
+      return;
+    }
 
-    // Return true to indicate we scheduled an AI move.
-    return true;
-  } finally {
-    // no-op
-  }
+    // Re-check it's still AI's turn right before moving.
+    // In this app, AI always plays Black.
+    if (game.currentPlayer !== 'b') {
+      window.__aiState.busy = false;
+      return;
+    }
+
+    const ok = game.movePiece(move.fromRow, move.fromCol, move.toRow, move.toCol);
+    if (ok) window.__aiState.lastMoveKey = moveKey;
+
+    window.__aiState.busy = false;
+  }, delayMs);
+
+  return true;
 }
+
 

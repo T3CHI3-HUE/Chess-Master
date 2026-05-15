@@ -14,12 +14,15 @@
       <div id="chessboard"></div>
 
       <!-- Overlay file labels (top of the board) -->
-      <div id="file-labels" style="position:absolute; top:-18px; left:0; right:0; display:grid; grid-template-columns: repeat(8, 60px); font-size:12px; color: rgba(255,255,255,0.9);">
+      <div id="file-labels" style="position:absolute; top:calc(-1 * var(--cell-size) * 0.15); left:0; right:0; height:var(--cell-size); display:grid; grid-template-columns: repeat(8, var(--cell-size)); grid-auto-rows: 1fr; align-items:center; justify-items:center; font-size:12px; color: rgba(255,255,255,0.9);">
+
         <div>a</div><div>b</div><div>c</div><div>d</div><div>e</div><div>f</div><div>g</div><div>h</div>
       </div>
 
+
       <!-- Overlay rank labels (left side of the board) -->
-      <div id="rank-labels" style="position:absolute; top:0; left:-22px; bottom:0; display:grid; grid-template-rows: repeat(8, 60px); font-size:12px; color: rgba(255,255,255,255,0.9); align-items:center; justify-items:center;">
+      <div id="rank-labels" style="position:absolute; top:0; left:calc(-1 * var(--cell-size) * 0.4); bottom:0; display:grid; grid-template-rows: repeat(8, var(--cell-size)); font-size:12px; color: rgba(255,255,255,0.9); align-items:center; justify-items:center;">
+
         <div>8</div><div>7</div><div>6</div><div>5</div><div>4</div><div>3</div><div>2</div><div>1</div>
       </div>
     </div>

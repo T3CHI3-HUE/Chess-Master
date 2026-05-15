@@ -24,7 +24,34 @@ body {
   padding: 20px;
 }
 
+/* Ensure a fixed footer never overlaps page content */
+body {
+  padding-bottom: 50px;
+}
+
+
 /* Intro overlay */
+#intro-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Make the landing intro content sit centered within the viewport */
+#intro-wrap {
+  width: 100%;
+}
+
+#game-container {
+  position: relative;
+  width: min(920px, 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 40px);
+}
+
+
 .intro-overlay {
   position: absolute;
   inset: 0;
@@ -39,9 +66,44 @@ body {
   gap: 10px;
 }
 
-#game-container {
-  position: relative;
+.intro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: rgba(255,255,255,0.95);
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
+
+.intro-badge-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #f5edd2;
+  box-shadow: 0 0 0 4px rgba(245, 237, 210, 0.18);
+}
+
+.intro-cta-glow {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 0 20px rgba(244, 222, 158, 0.25);
+}
+
+.intro-bottom-hint {
+  margin-top: 6px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+}
+
+
 
 .intro-title {
   color: #fff;
@@ -266,13 +328,24 @@ body {
 }
 
 .app-footer {
-  /* Default: place below main content */
+  /* Fixed footer at bottom of viewport (independent of game container resizing) */
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
   width: 100%;
   text-align: center;
   color: rgba(255,255,255,0.85);
   font-size: 13px;
-  margin-top: 18px;
+  margin-top: 0;
+
+  padding: 12px 0;
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
 }
+
 
 /* Put footer on the side (right of the board) for desktop */
 @media (min-width: 901px) {
@@ -286,27 +359,30 @@ body {
   }
 
   .app-footer {
-    /* Stack footer at the bottom (not a side label) */
+    /* Keep fixed footer behavior on desktop */
     order: initial;
-    margin-top: 18px;
+    margin-top: 0;
     width: 100%;
     text-align: center;
     align-self: auto;
   }
 }
 
+
 @media (max-width: 900px) {
   /* Everything below on smaller screens */
   #game-container {
     display: block;
   }
+
   .app-footer {
+    /* keep fixed footer at viewport bottom */
+    margin-top: 0;
     width: 100%;
     text-align: center;
-    margin-top: 18px;
-    align-self: auto;
   }
 }
+
 
 
 #game-container {
@@ -320,10 +396,11 @@ body {
 }
 
 #chessboard {
-
+  --cell-size: 60px;
   display: grid;
-  grid-template-columns: repeat(8, 60px);
-  grid-template-rows: repeat(8, 60px);
+  grid-template-columns: repeat(8, var(--cell-size));
+  grid-template-rows: repeat(8, var(--cell-size));
+
   border: 5px solid #8B4513;
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -457,19 +534,35 @@ button:hover {
 
   /* Intro */
   .intro-title {
-    font-size: 40px;
+    font-size: 44px;
     letter-spacing: 4px;
     text-align: center;
   }
   .intro-subtitle {
-    font-size: 16px;
+    font-size: 17px;
   }
+
+  .intro-badge {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
+
+  .intro-cta-glow {
+    padding: 6px 14px;
+    font-size: 14px;
+  }
+
+  .intro-bottom-hint {
+    font-size: 13px;
+  }
+
   .intro-chessboard {
-    --intro-cell: 34px;
+    --intro-cell: 38px;
   }
   .intro-piece {
-    font-size: 28px;
+    font-size: 30px;
   }
+
 
   /* Modes */
   .modes-title {

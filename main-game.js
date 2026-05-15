@@ -25,12 +25,19 @@ class ChessUI {
         square.classList.add('square', (row + col) % 2 === 0 ? 'light' : 'dark');
         square.dataset.row = row;
         square.dataset.col = col;
+
+        // Drag support (desktop)
         square.addEventListener('dragover', this.handleDragOver.bind(this));
         square.addEventListener('drop', this.handleDrop.bind(this));
+
+        // Tap/click support (mobile + fallback)
+        square.addEventListener('click', this.handleSquareClick.bind(this));
+
         this.boardEl.appendChild(square);
       }
     }
   }
+
 
   bindEvents() {
     this.resetBtn.addEventListener('click', () => {
@@ -159,6 +166,51 @@ class ChessUI {
     this.render();
   }
 
+  handleSquareClick(e) {
+    // Tap-to-move: click a piece square to select, then click a target square.
+    const squareEl = e.target.closest('.square');
+    if (!squareEl) return;
+
+    const row = parseInt(squareEl.dataset.row);
+    const col = parseInt(squareEl.dataset.col);
+    const piece = this.game.getPiece(row, col);
+
+    // No selection yet: select if it is current player's piece.
+    if (!this.selectedSquare) {
+      if (piece && piece.color === this.game.currentPlayer) {
+        this.selectedSquare = { row, col };
+        this.render();
+      }
+      return;
+    }
+
+    // Clicking the same square toggles off.
+    if (this.selectedSquare.row === row && this.selectedSquare.col === col) {
+      this.selectedSquare = null;
+      this.render();
+      return;
+    }
+
+    // Attempt move.
+    const fromRow = this.selectedSquare.row;
+    const fromCol = this.selectedSquare.col;
+    const moved = this.game.movePiece(fromRow, fromCol, row, col);
+
+    if (moved) {
+      this.selectedSquare = null;
+      this.updateStatus();
+      this.updateHistory();
+    } else {
+      // If move was illegal, allow re-selecting when clicking another own piece.
+      if (piece && piece.color === this.game.currentPlayer) {
+        this.selectedSquare = { row, col };
+      }
+    }
+
+    this.render();
+  }
+
+
   updateStatus() {
     if (this.game.gameOver) {
       this.statusEl.textContent = this.game.gameState === 'checkmate'
@@ -173,9 +225,17 @@ class ChessUI {
   updateHistory() {
     this.historyEl.innerHTML = '<h4>Move History:</h4>';
     this.game.moveHistory.forEach((move, i) => {
-      const alg = `${String.fromCharCode(97 + move.fromCol)}${8 - move.fromRow} to ${String.fromCharCode(97 + move.toCol)}${8 - move.toRow}`;
+      const fromFile = String.fromCharCode(97 + move.fromCol);
+      const fromRank = (8 - move.fromRow).toString();
+      const toFile = String.fromCharCode(97 + move.toCol);
+      const toRank = (8 - move.toRow).toString();
+      // Ensure consistent visual alignment: use fixed-width format and spacing.
+      // (e.g., always render like: e2 → e4)
+      const alg = `${fromFile}${fromRank}			${toFile}${toRank}`;
+
       const li = document.createElement('li');
-      li.textContent = `#${Math.floor(i / 2) + 1} ${alg}`;
+      li.textContent = `#${Math.floor(i / 2) + 1}	${alg}`;
+
       this.historyEl.appendChild(li);
     });
   }
@@ -263,9 +323,14 @@ function applyLearnerModeHints() {
 
   function setPrompt(text) {
     if (statusEl) statusEl.textContent = text;
-    if (learnerMessageEl) learnerMessageEl.textContent = '';
+    // Keep the guide visible during the whole scripted line.
+    if (learnerMessageEl) learnerMessageEl.textContent = text;
+
+    // Speak every step.
     speak(text);
+
   }
+
 
   function advanceIfPlayerMadeCorrectMove(game) {
     const step = getCurrentStep();
@@ -285,8 +350,11 @@ function applyLearnerModeHints() {
       const next = getCurrentStep();
       setPrompt((next && next.label) ? next.label : 'Tutorial complete!');
     } else {
+      // Keep voice + guide stable; only show a brief correction hint.
       if (learnerMessageEl) learnerMessageEl.textContent = `Try again: ${step.label}`;
+      speak(`Try again: ${step.label}`);
     }
+
   }
 
   // Override movePiece so we can validate + auto-play scripted AI moves.
