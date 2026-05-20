@@ -33,6 +33,7 @@ class ChessGame {
     return board;
   }
 
+
   getPiece(row, col) {
     return this.board[row][col];
   }
@@ -64,29 +65,61 @@ class ChessGame {
   }
 
   isLegalMove(fromRow, fromCol, toRow, toCol) {
+    // 1) Basic movement legality (ignoring king-safety)
     const piece = this.getPiece(fromRow, fromCol);
     const target = this.getPiece(toRow, toCol);
-    if (!piece || (target && target.color === piece.color)) return false;
-    if (target && target.type.toLowerCase() === 'k') return false; // No king capture in basic
 
+    if (!piece || piece.color !== this.currentPlayer) return false;
+    if (target && target.color === piece.color) return false;
+
+    // King capture is not supported; king is a target square only.
+    if (target && target.type.toLowerCase() === 'k') return false;
+
+    if (!this.isPseudoLegalMove(fromRow, fromCol, toRow, toCol, piece, target)) {
+      return false;
+    }
+
+    // 2) King-safety legality: after the move, moving side's king must not be in check.
+    const movingColor = piece.color;
+    const oppColor = movingColor === 'w' ? 'b' : 'w';
+
+    // Simulate
+    const captured = this.board[toRow][toCol];
+    this.board[toRow][toCol] = piece;
+    this.board[fromRow][fromCol] = null;
+
+    const king = this.findKing(movingColor);
+    const kingInCheck = king ? this.isSquareAttacked(king.row, king.col, oppColor) : false;
+
+    // Restore
+    this.board[fromRow][fromCol] = piece;
+    this.board[toRow][toCol] = captured;
+
+    return !kingInCheck;
+  }
+
+  isPseudoLegalMove(fromRow, fromCol, toRow, toCol, piece, target) {
     const deltaRow = toRow - fromRow;
     const deltaCol = toCol - fromCol;
-    const dist = Math.max(Math.abs(deltaRow), Math.abs(deltaCol));
 
     switch (piece.type.toLowerCase()) {
       case 'p': // Pawn
         if (piece.color === 'w') {
-          if (deltaCol === 0 && !target) { // Forward
+          if (deltaCol === 0 && !target) {
+            // Forward
             if (fromRow === 6 && deltaRow === -2) return true;
             return deltaRow === -1;
-          } else if (Math.abs(deltaCol) === 1 && deltaRow === -1 && target) { // Diagonal capture
+          }
+          if (Math.abs(deltaCol) === 1 && deltaRow === -1 && target) {
+            // Diagonal capture
             return true;
           }
         } else {
           if (deltaCol === 0 && !target) {
             if (fromRow === 1 && deltaRow === 2) return true;
             return deltaRow === 1;
-          } else if (Math.abs(deltaCol) === 1 && deltaRow === 1 && target) {
+          }
+          if (Math.abs(deltaCol) === 1 && deltaRow === 1 && target) {
             return true;
           }
         }
@@ -110,6 +143,7 @@ class ChessGame {
       case 'k': // King
         return Math.abs(deltaRow) <= 1 && Math.abs(deltaCol) <= 1;
     }
+
     return false;
   }
 
@@ -131,18 +165,19 @@ class ChessGame {
   }
 
   checkGameState() {
-    const king = this.findKing(this.currentPlayer === 'w' ? 'b' : 'w');
-    if (king && this.isInCheck(king.row, king.col)) {
-      const hasMoves = this.hasLegalMoves(this.currentPlayer);
-      if (!hasMoves) {
-        this.gameOver = true;
-        this.gameState = 'checkmate';
-      }
-    } else if (!this.hasLegalMoves(this.currentPlayer)) {
+    // After every move, `currentPlayer` is the side to move.
+    const kingColor = this.currentPlayer;
+    const king = this.findKing(kingColor);
+
+    const inCheck = !!(king && this.isInCheck(king.row, king.col, kingColor));
+    const hasMoves = this.hasLegalMoves(this.currentPlayer);
+
+    if (!hasMoves) {
       this.gameOver = true;
-      this.gameState = 'stalemate';
+      this.gameState = inCheck ? 'checkmate' : 'stalemate';
     }
   }
+
 
   findKing(color) {
     for (let r = 0; r < 8; r++) {
@@ -156,24 +191,38 @@ class ChessGame {
     return null;
   }
 
-  isInCheck(kingRow, kingCol) {
-    const opponent = this.currentPlayer === 'w' ? 'b' : 'w';
+  isSquareAttacked(row, col, byColor) {
+    // Iterate all pieces of byColor and see if they could capture (pseudo-legally)
+    // the target square.
     for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
         const p = this.getPiece(r, c);
-        if (p && p.color === opponent && this.isLegalMove(r, c, kingRow, kingCol)) {
-          return true;
-        }
+        if (!p || p.color !== byColor) continue;
+        const target = this.getPiece(row, col);
+
+        // Temporarily set currentPlayer so isPseudoLegalMove doesn't depend on it.
+        // (isPseudoLegalMove doesn't use currentPlayer.)
+        if (this.isPseudoLegalMove(r, c, row, col, p, target)) return true;
       }
     }
     return false;
   }
 
+  isInCheck(kingRow, kingCol, kingColor) {
+    const opponent = kingColor === 'w' ? 'b' : 'w';
+    return this.isSquareAttacked(kingRow, kingCol, opponent);
+  }
+
   hasLegalMoves(color) {
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const p = this.getPiece(r, c);
-        if (p && p.color === color) {
+    // Enumerate all pseudo-legal moves for `color`, then rely on isLegalMove
+    // king-safety filtering by temporarily setting currentPlayer.
+    const prev = this.currentPlayer;
+    this.currentPlayer = color;
+    try {
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const p = this.getPiece(r, c);
+          if (!p || p.color !== color) continue;
           for (let tr = 0; tr < 8; tr++) {
             for (let tc = 0; tc < 8; tc++) {
               if (this.isLegalMove(r, c, tr, tc)) return true;
@@ -181,9 +230,12 @@ class ChessGame {
           }
         }
       }
+    } finally {
+      this.currentPlayer = prev;
     }
     return false;
   }
+
 
   reset() {
     this.board = this.initialBoard();
