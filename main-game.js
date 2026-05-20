@@ -1,4 +1,4 @@
-class ChessUI {
+  5class ChessUI {
   constructor() {
     this.game = new ChessGame();
     this.boardEl = document.getElementById('chessboard');
@@ -8,11 +8,17 @@ class ChessUI {
     this.resetBtn = document.getElementById('reset-btn');
     this.historyToggle = document.getElementById('history-toggle');
 
+    this.announcementEl = document.getElementById('game-announcement');
+    this.announcementTextEl = document.getElementById('game-announcement-text');
+
     this.draggedPiece = null;
     this.selectedSquare = null;
 
+
     this.initBoard();
+    this.game.checkGameState && this.game.checkGameState();
     this.updateStatus();
+
     this.bindEvents();
     this.render();
   }
@@ -43,7 +49,9 @@ class ChessUI {
     this.resetBtn.addEventListener('click', () => {
       this.game.reset();
       this.selectedSquare = null;
+      this.game.checkGameState && this.game.checkGameState();
       this.updateStatus();
+
       this.render();
     });
 
@@ -211,6 +219,34 @@ class ChessUI {
   }
 
 
+  updateAnnouncement() {
+    if (!this.announcementEl || !this.announcementTextEl) return;
+
+    // Default hide.
+    this.announcementEl.hidden = true;
+    this.announcementEl.classList.remove('is-check', 'is-checkmate', 'is-stalemate');
+
+    if (this.game.gameOver) {
+      if (this.game.gameState === 'checkmate') {
+        this.announcementEl.classList.add('is-checkmate');
+        this.announcementTextEl.textContent = 'CHECKMATE';
+        this.announcementEl.hidden = false;
+      } else if (this.game.gameState === 'stalemate') {
+        this.announcementEl.classList.add('is-stalemate');
+        this.announcementTextEl.textContent = 'STALEMATE';
+        this.announcementEl.hidden = false;
+      }
+      return;
+    }
+
+    // Check (not mate)
+    if (this.game.inCheck) {
+      this.announcementEl.classList.add('is-check');
+      this.announcementTextEl.textContent = 'CHECK';
+      this.announcementEl.hidden = false;
+    }
+  }
+
   updateStatus() {
     if (this.game.gameOver) {
       this.statusEl.textContent = this.game.gameState === 'checkmate'
@@ -220,7 +256,10 @@ class ChessUI {
       this.statusEl.textContent = `${this.game.currentPlayer === 'w' ? "White's" : "Black's"} Turn`;
     }
     this.turnEl.textContent = `${this.game.currentPlayer === 'w' ? 'White' : 'Black'} to play`;
+
+    this.updateAnnouncement();
   }
+
 
   updateHistory() {
     this.historyEl.innerHTML = '<h4>Move History:</h4>';
@@ -396,6 +435,9 @@ window.addEventListener('load', () => {
   const level = params.get('level');
 
 if (match === 'pvai' && level) {
+    // Ensure announcement state is current before AI starts.
+    try { window.__chessUIInstance?.updateStatus && window.__chessUIInstance.updateStatus(); } catch (e) {}
+
     window.__aiState = window.__aiState || { busy: false, lastMoveKey: null };
 
     // Determine which side AI plays.

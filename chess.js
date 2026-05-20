@@ -6,7 +6,9 @@ class ChessGame {
     this.moveHistory = [];
     this.gameOver = false;
     this.gameState = null; // 'checkmate', 'stalemate', etc.
+    this.inCheck = false;
   }
+
 
   initialBoard() {
     const board = Array(8).fill().map(() => Array(8).fill(null));
@@ -170,6 +172,8 @@ class ChessGame {
     const king = this.findKing(kingColor);
 
     const inCheck = !!(king && this.isInCheck(king.row, king.col, kingColor));
+    this.inCheck = inCheck;
+
     const hasMoves = this.hasLegalMoves(this.currentPlayer);
 
     if (!hasMoves) {
@@ -177,6 +181,7 @@ class ChessGame {
       this.gameState = inCheck ? 'checkmate' : 'stalemate';
     }
   }
+
 
 
   findKing(color) {
@@ -244,7 +249,9 @@ class ChessGame {
     this.moveHistory = [];
     this.gameOver = false;
     this.gameState = null;
+    this.inCheck = false;
   }
+
 
   getUnicodePiece(piece) {
     if (!piece) return '';

@@ -485,6 +485,63 @@ body {
   text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
+/* Board-wide game announcements (check/checkmate/stalemate) */
+.game-announcement {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  background: rgba(0, 0, 0, 0.40);
+  backdrop-filter: blur(0px);
+  border-radius: 12px;
+
+
+  padding: 16px;
+  text-align: center;
+}
+
+.game-announcement-text {
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: white;
+  text-shadow: 0 12px 30px rgba(0,0,0,0.6);
+  line-height: 1.1;
+}
+
+.game-announcement.is-check {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.game-announcement.is-check .game-announcement-text {
+  color: #ffd54f;
+}
+
+.game-announcement.is-checkmate {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.game-announcement.is-checkmate .game-announcement-text {
+  color: #ff5252;
+}
+
+.game-announcement.is-stalemate {
+  background: rgba(0, 0, 0, 0.40);
+}
+
+.game-announcement.is-stalemate .game-announcement-text {
+  color: #9e9e9e;
+}
+
+@media (max-width: 600px) {
+  .game-announcement-text {
+    font-size: 32px;
+  }
+}
+
+
 button {
   background: #4CAF50;
   color: white;
