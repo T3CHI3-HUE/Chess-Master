@@ -451,8 +451,28 @@ body {
   box-shadow: inset 0 0 20px rgba(0,255,0,0.6);
 }
 
+.coord {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(0,0,0,0.6);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.35);
+  pointer-events: none;
+  z-index: 5;
+}
+
+#chessboard .coord {
+  /* On dark squares, flip to light text */
+}
+
+.square.light .coord { color: rgba(0,0,0,0.55); }
+.square.dark .coord { color: rgba(255,255,255,0.75); }
+
 .piece {
   transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
   font-family: 'Chess Meridian', serif; /* Fallback to system fonts with Unicode chess */
 }
 
@@ -490,16 +510,19 @@ body {
   position: absolute;
   inset: 0;
   display: flex;
+  pointer-events: none;
   align-items: center;
   justify-content: center;
   z-index: 2000;
   background: rgba(0, 0, 0, 0.40);
   backdrop-filter: blur(0px);
   border-radius: 12px;
-
-
   padding: 16px;
-  text-align: center;
+
+}
+/* Ensure [hidden] truly hides overlay and cannot look like a blank board */
+#game-announcement[hidden] {
+  display: none !important;
 }
 
 .game-announcement-text {
@@ -561,6 +584,8 @@ button:hover {
   box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 
+
+
 #move-history {
   margin-top: 20px;
   color: white;
@@ -584,6 +609,8 @@ button:hover {
 }
 
 /* Responsive */
+
+
 @media (max-width: 600px) {
   body {
     padding: 12px;

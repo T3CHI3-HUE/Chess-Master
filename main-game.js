@@ -1,4 +1,4 @@
-  5class ChessUI {
+class ChessUI {
   constructor() {
     this.game = new ChessGame();
     this.boardEl = document.getElementById('chessboard');
@@ -16,15 +16,45 @@
 
 
     this.initBoard();
+
+    // Populate the initial in-check state before first paint.
+    // (This also ensures the announcement overlay won't accidentally remain visible.)
     this.game.checkGameState && this.game.checkGameState();
     this.updateStatus();
 
+
     this.bindEvents();
     this.render();
+
+    // Debug: verify board is being initialized.
+    try {
+      const squares = this.boardEl?.querySelectorAll('.square')?.length;
+      console.debug('[ChessUI] initialized', { squares, boardEl: this.boardEl });
+    } catch (e) {
+      console.debug('[ChessUI] debug init failed', e);
+    }
+
+    // Debug: announcement visibility.
+    try {
+      console.debug('[ChessUI] announcement initial state', {
+        hidden: this.announcementEl?.hidden,
+        styleDisplay: this.announcementEl?.style?.display,
+        className: this.announcementEl?.className
+      });
+    } catch (e) {
+      // ignore
+    }
   }
 
   initBoard() {
+    // Guard: if the board element is missing (HTML mismatch), fail loud.
+    if (!this.boardEl) {
+      console.error('[ChessUI] Missing #chessboard element');
+      return;
+    }
+
     this.boardEl.innerHTML = '';
+
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const square = document.createElement('div');
@@ -64,13 +94,27 @@
 
   render() {
     const squares = this.boardEl.querySelectorAll('.square');
+    const showCoords = String(document.body?.dataset?.showCoords || '') === '1';
+
     squares.forEach(square => {
       const row = parseInt(square.dataset.row);
       const col = parseInt(square.dataset.col);
       const piece = this.game.getPiece(row, col);
       square.innerHTML = '';
+
+      if (showCoords) {
+        const coordEl = document.createElement('div');
+        coordEl.classList.add('coord');
+        // Algebraic: file a-h from col, rank 1-8 from row.
+        const file = String.fromCharCode(97 + col);
+        const rank = String(8 - row);
+        coordEl.textContent = `${file}${rank}`;
+        square.appendChild(coordEl);
+      }
+
       if (piece) {
         const pieceEl = document.createElement('div');
+
         pieceEl.classList.add('piece');
         pieceEl.textContent = this.game.getUnicodePiece(piece);
         pieceEl.draggable = true;
@@ -80,22 +124,7 @@
       // Visual feedback
       square.classList.remove('selected', 'valid-move', 'capture');
 
-      // Optional coordinate hint overlay: show algebraic coordinate in top-left of each square.
-      // Keep it subtle so it doesn’t overpower pieces.
-      const showCoords = document.body.dataset.showCoords === '1';
-      if (showCoords) {
-        const coordEl = document.createElement('div');
-        coordEl.style.position = 'absolute';
-        coordEl.style.top = '2px';
-        coordEl.style.left = '3px';
-        coordEl.style.fontSize = '11px';
-        coordEl.style.fontWeight = '700';
-        coordEl.style.color = 'rgba(255,255,255,0.65)';
-        coordEl.style.pointerEvents = 'none';
-        coordEl.style.fontFamily = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
-        coordEl.textContent = `${String.fromCharCode(97 + col)}${8 - row}`;
-        square.appendChild(coordEl);
-      }
+
     });
 
 
@@ -222,8 +251,9 @@
   updateAnnouncement() {
     if (!this.announcementEl || !this.announcementTextEl) return;
 
-    // Default hide.
+    // Always recompute from game state each render.
     this.announcementEl.hidden = true;
+    this.announcementEl.style.display = '';
     this.announcementEl.classList.remove('is-check', 'is-checkmate', 'is-stalemate');
 
     if (this.game.gameOver) {
@@ -239,13 +269,19 @@
       return;
     }
 
-    // Check (not mate)
+    // Show CHECK text only when the side to move is currently in check.
     if (this.game.inCheck) {
       this.announcementEl.classList.add('is-check');
       this.announcementTextEl.textContent = 'CHECK';
       this.announcementEl.hidden = false;
+      return;
     }
+
+    // Ensure it disappears when king is not in check.
+    this.announcementEl.hidden = true;
+    this.announcementTextEl.textContent = '';
   }
+
 
   updateStatus() {
     if (this.game.gameOver) {
@@ -288,6 +324,9 @@ function applyLearnerModeHints() {
   // In this codebase, “let’s play” is represented as level=lets-play and match=tutorial.
   if (level !== 'lets-play' || mode !== 'tutorial') return;
 
+  // Show square algebraic names (e.g. e2/e4) in the learner mode only.
+  document.body.dataset.showCoords = '1';
+
   // Full scripted “Let’s Play” guide.
   // IMPORTANT: this app uses simplified rules (no castling, no en-passant, no king capture).
   // The line below is chosen to be legal under those rules.
@@ -329,10 +368,10 @@ function applyLearnerModeHints() {
   const statusEl = document.getElementById('status');
   const learnerMessageEl = document.getElementById('learner-message');
 
-  // Show square coordinates during “Let’s Play” so instructions like e4/e5 are easy to follow.
-  document.body.dataset.showCoords = '1';
 
   // Text-to-speech tutor (English).
+
+
   const synth = window.speechSynthesis;
   let isSpeaking = false;
 
@@ -360,15 +399,23 @@ function applyLearnerModeHints() {
     return steps[stepIndex] || null;
   }
 
+
+
+
   function setPrompt(text) {
     if (statusEl) statusEl.textContent = text;
     // Keep the guide visible during the whole scripted line.
     if (learnerMessageEl) learnerMessageEl.textContent = text;
 
+    // Also mirror instructions visually.
+    // For now, keep `#status` focused on whose turn it is.
+
     // Speak every step.
+
     speak(text);
 
   }
+
 
 
   function advanceIfPlayerMadeCorrectMove(game) {
@@ -424,8 +471,10 @@ function applyLearnerModeHints() {
 
 
 window.addEventListener('load', () => {
+  console.debug('[ChessUI] window load fired');
   const ui = new ChessUI();
   window.__chessUIInstance = ui;
+  console.debug('[ChessUI] instance created', { hasBoard: !!ui.boardEl, squares: ui.boardEl?.querySelectorAll('.square')?.length });
   applyLearnerModeHints();
 
   // Player vs AI support
@@ -446,6 +495,20 @@ if (match === 'pvai' && level) {
 
 
     // Poll for AI turns; this app has no event hooks after moves.
+    // Kick once immediately so AI doesn't wait for any user interaction.
+    try {
+      const ui = window.__chessUIInstance;
+      if (ui && ui.game && !ui.game.gameOver && ui.game.currentPlayer === 'b') {
+        aiPlayIfNeeded(ui.game, level);
+        ui.selectedSquare = null;
+        ui.updateStatus();
+        ui.updateHistory && ui.updateHistory();
+        ui.render();
+      }
+    } catch (e) {
+      console.warn('[PVAI] initial AI kick failed', e);
+    }
+
     setInterval(() => {
       const ui = window.__chessUIInstance;
       if (!ui) return;
@@ -457,7 +520,8 @@ if (match === 'pvai' && level) {
         if (window.__aiState && window.__aiState.busy) return;
         if (typeof aiPlayIfNeeded === 'function') {
           aiPlayIfNeeded(game, level);
-          // UI will update on next user action; we also trigger a render here.
+          // Immediately reflect the AI move on screen.
+          ui.selectedSquare = null;
           ui.updateStatus();
           ui.updateHistory && ui.updateHistory();
           ui.render();
@@ -466,6 +530,7 @@ if (match === 'pvai' && level) {
     }, 250);
   }
 });
+
 
 
 

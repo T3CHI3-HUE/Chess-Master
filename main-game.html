@@ -11,30 +11,21 @@
     <div id="status">White's Turn</div>
     <div id="turn-indicator" class="turn-indicator">White to play</div>
     <div id="board-wrap" style="position: relative; display: inline-block;">
-      <div id="file-labels" style="position:absolute; top:0; left:0; right:0; display:flex; align-items:center; justify-content:space-between; height:calc(var(--cell-size) * 1); padding:0 0px; pointer-events:none; transform: translateY(calc(-1 * var(--cell-size) * 0.10));">
-        <div style="width:calc(var(--cell-size) * 1); text-align:center;">a</div>
-        <div style="width:calc(var(--cell-size) * 1); text-align:center;">b</div>
-        <div style="width:calc(var(--cell-size) * 1); text-align:center;">c</div>
-        <div style="width:calc(var(--cell-size) * 1); text-align:center;">d</div>
-        <div style="width:calc(var(--cell-size) * 1); text-align:center;">e</div>
-        <div style="width:calc(var(--cell-size) * 1); text-align:center;">f</div>
-        <div style="width:calc(var(--cell-size) * 1); text-align:center;">g</div>
-        <div style="width:calc(var(--cell-size) * 1); text-align:center;">h</div>
-      </div>
+
 
       <div id="chessboard"></div>
+
+
+
 
       <!-- Board-wide announcement overlay (check / checkmate / stalemate) -->
       <div id="game-announcement" class="game-announcement" aria-live="polite" aria-atomic="true" hidden>
         <div id="game-announcement-text" class="game-announcement-text"></div>
       </div>
 
-      <!-- Overlay rank labels (left of squares, shifted outward and vertically centered) -->
-      <div id="rank-labels" style="position:absolute; top:0; left:calc(-1 * var(--cell-size) * 0.18); bottom:0; display:grid; grid-template-rows: repeat(8, var(--cell-size)); font-size:12px; color: rgba(255,255,255,0.9); align-items:center; justify-items:center; pointer-events:none;">
-        <div>8</div><div>7</div><div>6</div><div>5</div><div>4</div><div>3</div><div>2</div><div>1</div>
-      </div>
 
     </div>
+
 
 
     <button id="reset-btn">New Game</button>
